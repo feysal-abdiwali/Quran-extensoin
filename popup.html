@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quran Extension</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Fallback styles that will show regardless of JavaScript errors */
+        #fallback-content {
+            display: block;
+            padding: 20px;
+            text-align: center;
+        }
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Fallback content that will show if JavaScript fails -->
+    <div id="fallback-content">
+        <h2>The Noble Quran</h2>
+        <div class="bismillah-header">
+            بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
+            <div class="translation-text">In the name of Allah, the Entirely Merciful, the Especially Merciful</div>
+        </div>
+        <p>Loading Quran Extension...</p>
+        <p>If this message persists, please try reloading the extension.</p>
+    </div>
+
+    <div id="app-container" class="app-container hidden">
+        <!-- Surah List Section -->
+        <section id="surah-section" class="scrollable">
+            <div class="search-section">
+                <input type="text" id="surah-search" placeholder="Search Surah...">
+            </div>
+            
+            <!-- Loading indicator and error message for Surah list -->
+            <div id="surah-loading" class="loading-indicator">
+                <div class="spinner"></div>
+                <p>Loading Surahs...</p>
+            </div>
+            <div id="surah-error" class="error-message">
+                <p>Could not load Surahs. Please check your connection and try again.</p>
+                <button id="retry-surah-btn" class="retry-button">Retry</button>
+            </div>
+            
+            <nav>
+                <ul id="surah-list"></ul>
+            </nav>
+        </section>
+        
+        <!-- Ayah Content Section -->
+        <section id="ayah-section" class="scrollable">
+            <div class="ayah-header">
+                <div class="nav-controls">
+                    <button id="back-button" class="back-button" aria-label="Go back to Surah list">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path d="M19 12H5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M12 19L5 12L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Back to Surahs
+                    </button>
+                    
+                    <button id="play-all-button" class="play-all-button" aria-label="Play entire Surah">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path d="M5 3L19 12L5 21V3Z" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Play Surah
+                    </button>
+                    
+                    <div class="reciter-dropdown">
+                        <select id="reciter-select" title="Select Reciter" aria-label="Select Quranic reciter"></select>
+                    </div>
+                </div>
+                
+                <div class="surah-info-card">
+                    <div class="surah-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect width="24" height="24" rx="12" fill="#35866b"/>
+                            <path d="M7 7H17M7 12H17M7 17H13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <div class="surah-name-arabic" id="surah-name-arabic"></div>
+                    <h2 id="surah-title" class="surah-title"></h2>
+                    <div id="surah-subtitle" class="surah-subtitle"></div>
+                    <div class="surah-metadata">
+                        <div id="verse-count" class="metadata-badge">7 verses</div>
+                        <div id="revelation-type" class="metadata-badge">Meccan</div>
+                    </div>
+                </div>
+                
+                <!-- Loading indicator and error message for Ayahs -->
+                <div id="ayah-loading" class="loading-indicator">
+                    <div class="spinner"></div>
+                    <p>Loading Ayahs...</p>
+                </div>
+                <div id="ayah-error" class="error-message">
+                    <p>Could not load Ayahs. Please check your connection and try again.</p>
+                    <button id="retry-ayah-btn" class="retry-button">Retry</button>
+                </div>
+                
+                <div id="ayah-container"></div>
+            </div>
+        </section>
+        
+        <div id="audio-player-container">
+            <div class="audio-player-inner">
+                <audio id="audio-player" controls></audio>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Script to handle initial loading and fallback -->
+    <script>
+        // Basic error handling for initial load
+        window.addEventListener('DOMContentLoaded', function() {
+            try {
+                // Hide fallback after 100ms to give app.js time to initialize
+                setTimeout(function() {
+                    document.getElementById('fallback-content').style.display = 'none';
+                    document.getElementById('app-container').classList.remove('hidden');
+                }, 100);
+            } catch (e) {
+                console.error('Error in initial load:', e);
+                // Keep fallback visible if there's an error
+            }
+        });
+    </script>
+    
+    <!-- Load modular JavaScript files using type="module" -->
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>
