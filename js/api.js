@@ -46,24 +46,54 @@ export async function fetchReciters() {
     }
 }
 
-export async function fetchAyahs(surahNumber, reciterIdentifier, elements, config) {
+export async function fetchAyahs(surahNumber, reciterIdentifier, elements, config, translationIdentifier) {
     try {
         // Show loading indicator, hide error if visible
         showElement(elements.ayahLoading);
         hideElement(elements.ayahError);
         
-        const response = await fetch(`${API_BASE_URL}/surah/${surahNumber}/${reciterIdentifier}`);
+        // Use provided translation identifier or fall back to default
+        const translationId = translationIdentifier || config.DEFAULT_TRANSLATION;
         
-        if (!response.ok) {
-            throw new Error(`Failed to fetch ayahs: ${response.status} ${response.statusText}`);
+        // Check if we're using an Arabic edition as translation
+        const isArabicEdition = translationId.startsWith('ar.') || 
+                               translationId === 'quran-simple' || 
+                               translationId === 'quran-uthmani';
+        
+        // Fetch Arabic text with audio recitation
+        const audioResponse = await fetch(`${API_BASE_URL}/surah/${surahNumber}/${reciterIdentifier}`);
+        
+        // Fetch translation
+        const translationResponse = await fetch(`${API_BASE_URL}/surah/${surahNumber}/${translationId}`);
+        
+        if (!audioResponse.ok) {
+            throw new Error(`Failed to fetch ayahs: ${audioResponse.status} ${audioResponse.statusText}`);
         }
         
-        const data = await response.json();
+        if (!translationResponse.ok) {
+            throw new Error(`Failed to fetch translation: ${translationResponse.status} ${translationResponse.statusText}`);
+        }
+        
+        const audioData = await audioResponse.json();
+        const translationData = await translationResponse.json();
+        
+        // Combine the Arabic text and translations
+        const combinedAyahs = audioData.data.ayahs.map((ayah, index) => {
+            // For Arabic editions, we need to handle differently to avoid showing duplicate Arabic text
+            return {
+                ...ayah,
+                translation: isArabicEdition ? 
+                    // For Arabic editions, add a note rather than duplicate the text
+                    'تفسير: ' + (translationData.data.ayahs[index]?.text || '') :
+                    // For other languages, just use the translation text
+                    translationData.data.ayahs[index]?.text || ''
+            };
+        });
         
         // Process the ayahs to ensure proper formatting and remove Bismillah from first ayah
         const processedAyahs = cleanAyahs(
-            data.data.ayahs, 
-            data.data.number, 
+            combinedAyahs, 
+            audioData.data.number, 
             config.BISMILLAH_PATTERNS,
             config.SPECIAL_SURAHS,
             config.SPECIAL_CASE_SURAHS,
@@ -75,7 +105,7 @@ export async function fetchAyahs(surahNumber, reciterIdentifier, elements, confi
         
         return {
             ayahs: processedAyahs,
-            surah: data.data
+            surah: audioData.data
         };
     } catch (error) {
         console.error('Error fetching ayahs:', error);

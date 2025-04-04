@@ -8,7 +8,13 @@ export function initPlayer(elements, state) {
         if (state.isPlayingAll) {
             pausePlayback(elements, state);
         } else {
-            playAllAyahs(elements, state);
+            // Check if we're resuming from a paused state
+            if (elements.audioPlayer.src && state.currentlyPlayingAyahIndex >= 0) {
+                resumePlayback(elements, state);
+            } else {
+                // Start playing all ayahs from the beginning
+                playAllAyahs(elements, state);
+            }
         }
     });
     
@@ -120,6 +126,7 @@ export function playAllAyahs(elements, state) {
 export function pausePlayback(elements, state) {
     // Pause playback
     elements.audioPlayer.pause();
+    // Don't reset the src to maintain the current position
     state.isPlayingAll = false;
     
     // Update button text
@@ -129,13 +136,31 @@ export function pausePlayback(elements, state) {
 
 // Resume paused playback
 export function resumePlayback(elements, state) {
-    // Resume playback
-    elements.audioPlayer.play();
-    state.isPlayingAll = true;
-    
-    // Update button text
-    elements.playAllButton.innerHTML = '<span class="play-icon">⏸</span> Pause';
-    elements.playAllButton.classList.add('playing');
+    // Only resume if there's a valid source and we were playing an ayah
+    if (elements.audioPlayer.src && state.currentlyPlayingAyahIndex >= 0) {
+        // Resume playback from current position
+        const playPromise = elements.audioPlayer.play();
+        
+        // Handle potential play() promise rejection
+        if (playPromise !== undefined) {
+            playPromise.catch(error => {
+                console.error('Error resuming audio:', error);
+                // If resuming fails, try to restart the current ayah
+                playAyah(elements, state, state.currentlyPlayingAyahIndex);
+            });
+        }
+        
+        state.isPlayingAll = true;
+        
+        // Update button text
+        elements.playAllButton.innerHTML = '<span class="play-icon">⏸</span> Pause';
+        elements.playAllButton.classList.add('playing');
+    } else {
+        // If there's no valid audio source or no current ayah, restart playback
+        if (state.currentAyahs && state.currentAyahs.length > 0) {
+            playAllAyahs(elements, state);
+        }
+    }
 }
 
 // Play the next ayah in sequence

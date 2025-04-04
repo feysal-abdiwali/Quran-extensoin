@@ -4,6 +4,7 @@ import * as ui from './ui.js';
 import * as player from './player.js';
 import * as utils from './utils.js'; // Import utils module
 import { saveState, loadState } from './utils.js';
+import * as translations from './translations.js'; // Import translations module
 
 // Main application class
 class QuranApp {
@@ -15,8 +16,12 @@ class QuranApp {
         this.state = {
             allSurahs: [],
             allReciters: [],
+            allLanguages: translations.AVAILABLE_LANGUAGES,
+            translationsByLanguage: translations.TRANSLATIONS_BY_LANGUAGE,
             selectedSurahNumber: config.DEFAULT_SURAH,
             selectedReciterIdentifier: config.DEFAULT_RECITER,
+            selectedLanguageCode: config.DEFAULT_LANGUAGE,
+            selectedTranslationIdentifier: config.DEFAULT_TRANSLATION,
             currentAyahs: [],
             currentSurah: null,
             currentlyPlayingAyahIndex: -1,
@@ -34,6 +39,8 @@ class QuranApp {
             surahSearchInput: document.getElementById('surah-search'),
             surahList: document.getElementById('surah-list'),
             reciterSelect: document.getElementById('reciter-select'),
+            languageSelect: document.getElementById('language-select'),
+            translationSelect: document.getElementById('translation-select'),
             ayahContainer: document.getElementById('ayah-container'),
             audioPlayer: document.getElementById('audio-player'),
             audioPlayerContainer: document.getElementById('audio-player-container'),
@@ -126,6 +133,16 @@ class QuranApp {
         // Reciter select
         this.elements.reciterSelect.addEventListener('change', this.handleReciterChange.bind(this));
         
+        // Language select
+        if (this.elements.languageSelect) {
+            this.elements.languageSelect.addEventListener('change', this.handleLanguageChange.bind(this));
+        }
+        
+        // Translation select
+        if (this.elements.translationSelect) {
+            this.elements.translationSelect.addEventListener('change', this.handleTranslationChange.bind(this));
+        }
+        
         // Back button
         this.elements.backButton.addEventListener('click', () => {
             ui.showSurahList(this.elements);
@@ -168,6 +185,25 @@ class QuranApp {
                 ui.renderReciterOptions(this.elements, this.state.allReciters, this.state.selectedReciterIdentifier);
             }
             
+            // Render language options
+            if (this.elements.languageSelect) {
+                ui.renderLanguageOptions(
+                    this.elements, 
+                    this.state.allLanguages, 
+                    this.state.selectedLanguageCode
+                );
+            }
+            
+            // Render translation options
+            if (this.elements.translationSelect) {
+                ui.renderTranslationOptions(
+                    this.elements, 
+                    this.state.translationsByLanguage, 
+                    this.state.selectedLanguageCode,
+                    this.state.selectedTranslationIdentifier
+                );
+            }
+            
             return true;
         } catch (error) {
             console.error("Error in fetchInitialData:", error);
@@ -177,26 +213,36 @@ class QuranApp {
     
     // Fetch ayahs for a specific surah with a specific reciter
     async fetchAyahs(surahNumber, reciterIdentifier) {
-        const result = await api.fetchAyahs(surahNumber, reciterIdentifier, this.elements, config);
-        
-        if (result.ayahs.length > 0) {
-            this.state.currentAyahs = result.ayahs;
-            this.state.currentSurah = result.surah;
+        try {
+            ui.showAyahView(this.elements);
+            player.stopPlayback(this.elements, this.state);
+            
+            // Pass both the config module and selected translation
+            const { ayahs, surah } = await api.fetchAyahs(
+                surahNumber, 
+                reciterIdentifier, 
+                this.elements, 
+                config,
+                this.state.selectedTranslationIdentifier
+            );
+            
+            this.state.currentAyahs = ayahs;
+            this.state.currentSurah = surah;
             
             ui.renderAyahs(
                 this.elements, 
                 this.state.currentAyahs, 
-                this.state.currentSurah, 
+                this.state.currentSurah,
                 this.handleSingleAyahPlayClick.bind(this)
             );
-            
-            ui.showAyahView(this.elements);
+        } catch (error) {
+            console.error('Error in fetchAyahs:', error);
         }
     }
     
     // Load saved state from storage
     async loadSavedState() {
-        const result = await loadState(['selectedSurahNumber', 'selectedReciterIdentifier']);
+        const result = await loadState() || {};
         
         if (result.selectedSurahNumber) {
             this.state.selectedSurahNumber = result.selectedSurahNumber;
@@ -204,6 +250,32 @@ class QuranApp {
         
         if (result.selectedReciterIdentifier) {
             this.state.selectedReciterIdentifier = result.selectedReciterIdentifier;
+        }
+        
+        if (result.selectedLanguageCode) {
+            this.state.selectedLanguageCode = result.selectedLanguageCode;
+        }
+        
+        if (result.selectedTranslationIdentifier) {
+            this.state.selectedTranslationIdentifier = result.selectedTranslationIdentifier;
+        }
+        
+        // Update language and translation dropdowns after loading state
+        if (this.elements.languageSelect) {
+            ui.renderLanguageOptions(
+                this.elements, 
+                this.state.allLanguages, 
+                this.state.selectedLanguageCode
+            );
+        }
+        
+        if (this.elements.translationSelect) {
+            ui.renderTranslationOptions(
+                this.elements, 
+                this.state.translationsByLanguage,
+                this.state.selectedLanguageCode,
+                this.state.selectedTranslationIdentifier
+            );
         }
         
         // Fetch ayahs with the loaded or default state
@@ -216,7 +288,9 @@ class QuranApp {
     saveState() {
         saveState({
             selectedSurahNumber: this.state.selectedSurahNumber,
-            selectedReciterIdentifier: this.state.selectedReciterIdentifier
+            selectedReciterIdentifier: this.state.selectedReciterIdentifier,
+            selectedLanguageCode: this.state.selectedLanguageCode,
+            selectedTranslationIdentifier: this.state.selectedTranslationIdentifier
         });
     }
     
@@ -240,6 +314,42 @@ class QuranApp {
     
     handleReciterChange(event) {
         this.state.selectedReciterIdentifier = event.target.value;
+        this.saveState();
+        if (this.state.currentSurah) {
+            this.fetchAyahs(this.state.currentSurah.number, this.state.selectedReciterIdentifier);
+        }
+    }
+    
+    handleLanguageChange(event) {
+        const newLanguageCode = event.target.value;
+        this.state.selectedLanguageCode = newLanguageCode;
+        
+        // Get the first translation for the selected language
+        const availableTranslations = this.state.translationsByLanguage[newLanguageCode] || [];
+        if (availableTranslations.length > 0) {
+            this.state.selectedTranslationIdentifier = availableTranslations[0].identifier;
+        } else {
+            // If no translations are available for this language, use the default
+            this.state.selectedTranslationIdentifier = config.DEFAULT_TRANSLATION;
+        }
+        
+        // Update the translation dropdown
+        ui.renderTranslationOptions(
+            this.elements, 
+            this.state.translationsByLanguage,
+            this.state.selectedLanguageCode,
+            this.state.selectedTranslationIdentifier
+        );
+        
+        // Save state and reload ayahs
+        this.saveState();
+        if (this.state.currentSurah) {
+            this.fetchAyahs(this.state.currentSurah.number, this.state.selectedReciterIdentifier);
+        }
+    }
+    
+    handleTranslationChange(event) {
+        this.state.selectedTranslationIdentifier = event.target.value;
         this.saveState();
         if (this.state.currentSurah) {
             this.fetchAyahs(this.state.currentSurah.number, this.state.selectedReciterIdentifier);

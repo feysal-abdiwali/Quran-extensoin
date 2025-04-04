@@ -112,6 +112,51 @@ export function renderReciterOptions(elements, allReciters, selectedReciterIdent
     });
 }
 
+export function renderLanguageOptions(elements, availableLanguages, selectedLanguageCode) {
+    if (!elements.languageSelect) return;
+    
+    elements.languageSelect.innerHTML = '';
+    
+    availableLanguages.forEach(language => {
+        const option = document.createElement('option');
+        option.value = language.code;
+        option.textContent = language.name;
+        if (language.code === selectedLanguageCode) {
+            option.selected = true;
+        }
+        elements.languageSelect.appendChild(option);
+    });
+}
+
+export function renderTranslationOptions(elements, translationsByLanguage, selectedLanguageCode, selectedTranslationIdentifier) {
+    if (!elements.translationSelect) return;
+    
+    elements.translationSelect.innerHTML = '';
+    
+    // Get translations for the selected language
+    const translations = translationsByLanguage[selectedLanguageCode] || [];
+    
+    translations.forEach(translation => {
+        const option = document.createElement('option');
+        option.value = translation.identifier;
+        option.textContent = translation.name;
+        if (translation.identifier === selectedTranslationIdentifier) {
+            option.selected = true;
+        }
+        elements.translationSelect.appendChild(option);
+    });
+    
+    // If there are no translations available for this language or the dropdown is empty
+    if (translations.length === 0) {
+        const option = document.createElement('option');
+        option.value = '';
+        option.textContent = 'No translations available';
+        option.disabled = true;
+        option.selected = true;
+        elements.translationSelect.appendChild(option);
+    }
+}
+
 export function renderAyahs(elements, currentAyahs, currentSurah, playClickHandler) {
     elements.ayahContainer.innerHTML = '';
     

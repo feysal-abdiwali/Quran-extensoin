@@ -1,4 +1,4 @@
-# Quran Extension
+# Quran Extension v1.2
 
 A Chrome browser extension that provides easy access to Quranic text and audio recitations directly from your browser's sidebar.
 
@@ -17,6 +17,8 @@ A Chrome browser extension that provides easy access to Quranic text and audio r
 - ⚡ Fast and lightweight with minimal resource usage
 - 🌙 Proper handling of Bismillah for all Surahs
 - 🔍 Simple and intuitive navigation
+- 🌎 Multi-language support for translations
+- 📚 Improved Arabic handling for better text display
 
 ## Installation
 
@@ -31,7 +33,7 @@ A Chrome browser extension that provides easy access to Quranic text and audio r
 1. **Fork this repository** (highly recommended as this repo is unmaintained)
 2. Clone your fork:
    ```
-   git clone https://github.com/your-username/quran-extension.git
+   git clone https://github.com/feysal-abdiwali/Quran-extensoin.git  
    ```
 3. Open Chrome and navigate to `chrome://extensions/`
 4. Enable "Developer mode" (toggle in the top right)
@@ -45,6 +47,7 @@ A Chrome browser extension that provides easy access to Quranic text and audio r
 3. Click on any Surah to view its Ayahs
 4. Use the audio controls to listen to recitations
 5. Select different reciters from the dropdown menu
+6. Choose your preferred language for translations
 
 ## API Information
 
@@ -69,6 +72,8 @@ Please note that by using this software, you agree to these terms. If you plan t
 See the [LICENSE](LICENSE) file for the full license text.
 
 ## Contributing
+
+**Note: This repository is currently unmaintained.** Forking and continuing development on your own fork is highly encouraged!
 
 Contributions are welcome! If you'd like to contribute to this project, please follow these steps:
 

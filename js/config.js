@@ -4,6 +4,17 @@ export const API_BASE_URL = 'https://api.alquran.cloud/v1';
 // Default settings
 export const DEFAULT_SURAH = 1; // Default to Surah Al-Fatiha
 export const DEFAULT_RECITER = 'ar.alafasy'; // Default reciter
+export const DEFAULT_TRANSLATION = 'en.sahih'; // Default English translation
+export const DEFAULT_LANGUAGE = 'en'; // Default language for translations
+
+// Available translations
+export const AVAILABLE_TRANSLATIONS = [
+    { identifier: 'en.sahih', name: 'Sahih International', language: 'English' },
+    { identifier: 'en.pickthall', name: 'Pickthall', language: 'English' },
+    { identifier: 'en.yusufali', name: 'Yusuf Ali', language: 'English' },
+    { identifier: 'en.asad', name: 'Muhammad Asad', language: 'English' },
+    { identifier: 'en.ahmedali', name: 'Ahmed Ali', language: 'English' }
+];
 
 // Bismillah patterns for text processing
 export const BISMILLAH_PATTERNS = [
@@ -14,6 +25,7 @@ export const BISMILLAH_PATTERNS = [
     /بسم الله الرحمن الرحيم/,
     /بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ/,
     /بِّسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ/,
+    /بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ/,
     /بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ/,
     /بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ/,
     /بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ/,
